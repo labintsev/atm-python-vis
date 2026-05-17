@@ -1,0 +1,168 @@
+from flask import Flask, render_template, request, jsonify
+from datetime import datetime, timedelta
+import os
+import sys
+from mssqldb import MSSQLDatabase
+from sched_vizual import RadioScheduleVisualizer
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
+
+# Global database instance
+db = None
+db_initialized = False
+
+
+def init_db():
+    """Initialize database connection"""
+    global db, db_initialized
+    if db_initialized:
+        return db is not None
+    
+    try:
+        db = MSSQLDatabase(
+            server="localhost",
+            port=1435,
+            database=os.getenv("DB_NAME"),
+            username=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+        )
+        db.connect()
+        print("✅ Database connected successfully")
+        db_initialized = True
+        return True
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        db_initialized = True
+        return False
+
+
+@app.route('/')
+def index():
+    """Main page with list of radio stations and date picker"""
+    try:
+        # Initialize database if not already done
+        if not db_initialized:
+            init_db()
+        
+        if db is None:
+            return "Ошибка: соединение с базой данных не установлено", 500
+        
+        # Get list of radio stations from database
+        radios = db.query_radios()
+        
+        # Default date
+        default_date = "2026-04-01"
+        
+        return render_template(
+            'index.html',
+            radios=radios,
+            default_date=default_date
+        )
+    
+    except Exception as e:
+        print(f"Error in index route: {e}")
+        return f"Ошибка при загрузке главной страницы: {str(e)}", 500
+
+
+@app.route('/schedule')
+def schedule():
+    """Schedule page with Plotly visualization"""
+    try:
+        # Initialize database if not already done
+        if not db_initialized:
+            init_db()
+        
+        if db is None:
+            return "Ошибка: соединение с базой данных не установлено", 500
+        
+        # Get parameters from request
+        radio_id = request.args.get('radio_id', type=int)
+        date_str = request.args.get('date', type=str)
+        
+        # Validation
+        if radio_id is None:
+            return "Ошибка: не указан radio_id", 400
+        
+        if date_str is None:
+            return "Ошибка: не указана дата", 400
+        
+        # Validate date format
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            return "Ошибка: неверный формат даты (используйте YYYY-MM-DD)", 400
+        
+        # Calculate date range (7 days from the selected date)
+        date_start = date_str
+        date_end = (date_obj + timedelta(days=7)).strftime('%Y-%m-%d')
+        
+        # Get data from database
+        try:
+            df = db.query_scheds(radio_id, date_start, date_end)
+        except Exception as e:
+            print(f"Database query error: {e}")
+            return f"Ошибка при запросе к базе данных: {str(e)}", 500
+        
+        # Check if data is empty
+        if df.empty:
+            return render_template(
+                'schedule.html',
+                radio_id=radio_id,
+                radio_name="Неизвестная",
+                date=date_str,
+                graph_html="<p>Нет данных для выбранной радиостанции и периода</p>",
+                has_data=False
+            )
+        
+        # Get radio name from data
+        radio_name = df['Radio'].iloc[0] if 'Radio' in df.columns and len(df) > 0 else f"RadioID {radio_id}"
+        
+        # Create visualizer and get figure
+        try:
+            visualizer = RadioScheduleVisualizer(df)
+            fig = visualizer.get_figure(radio_id, radio_name)
+            
+            # Convert figure to HTML
+            graph_html = fig.to_html(full_html=False, include_plotlyjs='cdn')
+        except Exception as e:
+            print(f"Visualization error: {e}")
+            return f"Ошибка при создании визуализации: {str(e)}", 500
+        
+        return render_template(
+            'schedule.html',
+            radio_id=radio_id,
+            radio_name=radio_name,
+            date=date_str,
+            graph_html=graph_html,
+            has_data=True
+        )
+    
+    except Exception as e:
+        print(f"Error in schedule route: {e}")
+        return f"Ошибка: {str(e)}", 500
+
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    return "Страница не найдена", 404
+
+
+@app.errorhandler(500)
+def server_error(error):
+    """Handle 500 errors"""
+    return "Внутренняя ошибка сервера", 500
+
+
+if __name__ == '__main__':
+    # Load environment variables
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Initialize database
+    if init_db():
+        app.run(debug=True, host='localhost', port=5005)
+    else:
+        print("Failed to initialize database. Exiting.")
+        sys.exit(1)

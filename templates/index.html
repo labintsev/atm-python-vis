@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Визуализация расписания{% endblock %}
+
+{% block content %}
+<header>
+    <h1>📻 Расписание радиостанций ATM</h1>
+    <p style="color: #666; margin-top: 5px;">Выберите радиостанцию и дату для просмотра расписания</p>
+</header>
+
+<div style="max-width: 400px;">
+    <form id="scheduleForm" method="GET" action="/schedule" onsubmit="return validateForm()">
+        <div class="form-group">
+            <label for="dateInput">📅 Дата начала расписания:</label>
+            <input 
+                type="date" 
+                id="dateInput" 
+                name="date" 
+                value="{{ default_date }}" 
+                required
+            >
+            <p class="info-text">Расписание будет показано на 7 дней от выбранной даты</p>
+        </div>
+        
+        <input type="hidden" id="radioIdInput" name="radio_id" value="">
+    </form>
+</div>
+
+<div>
+    <h2 style="margin-top: 30px;">📡 Доступные радиостанции:</h2>
+    <div class="radios-grid">
+        {% if radios %}
+            {% for radio in radios %}
+            <button 
+                class="radio-button" 
+                onclick="selectRadio({{ radio.RadioID }}, '{{ radio.Radio }}')"
+                title="{{ radio.Radio }}"
+            >
+                <strong>{{ radio.Radio }}</strong>
+                <span class="radio-id">#{{ radio.RadioID }}</span>
+            </button>
+            {% endfor %}
+        {% else %}
+            <div class="error-message">
+                ⚠️ Не удалось загрузить список радиостанций из базы данных
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function selectRadio(radioId, radioName) {
+        // Set the hidden radio_id field
+        document.getElementById('radioIdInput').value = radioId;
+        
+        // Get the date value
+        const date = document.getElementById('dateInput').value;
+        
+        // Redirect to schedule page
+        window.location.href = `/schedule?radio_id=${radioId}&date=${date}`;
+    }
+    
+    function validateForm() {
+        const date = document.getElementById('dateInput').value;
+        if (!date) {
+            alert('Пожалуйста, выберите дату');
+            return false;
+        }
+        return true;
+    }
+    
+    // Allow Enter key to work in the form
+    document.getElementById('dateInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+        }
+    });
+</script>
+{% endblock %}
