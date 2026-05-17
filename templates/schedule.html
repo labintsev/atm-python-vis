@@ -19,20 +19,9 @@
     <div class="graph-container">
         {{ graph_html | safe }}
     </div>
-    
-    <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px; border-left: 4px solid #0066cc;">
-        <h3 style="color: #0066cc; margin-bottom: 10px;">💡 Советы по работе с графиком:</h3>
-        <ul style="margin-left: 20px; color: #333; line-height: 1.6;">
-            <li><strong>Наведение мышки:</strong> Наведите на точку, чтобы увидеть детали ролика (название, длительность, заказчик)</li>
-            <li><strong>Масштабирование:</strong> Используйте скролл мышки или перетаскивание для изменения масштаба графика</li>
-            <li><strong>Панинг:</strong> Зажмите левую кнопку мышки и перемещайте для сдвига графика</li>
-            <li><strong>Двойной клик:</strong> Двойной клик на график вернёт стандартный масштаб</li>
-            <li><strong>Цвета:</strong> Каждый цвет представляет ответственного за ролик</li>
-        </ul>
-    </div>
-    
-    <div style="margin-top: 20px; text-align: center;">
-        <a href="/" class="back-link" style="display: inline-block;">← Выбрать другую радиостанцию</a>
+
+    <div style="margin-top: 20px;">
+        <a href="/" class="back-link">← Назад на главную</a>
     </div>
 
 {% else %}
@@ -40,28 +29,9 @@
         ⚠️ Нет данных для радиостанции <strong>{{ radio_name }}</strong> (RadioID: {{ radio_id }}) 
         с даты <strong>{{ date }}</strong> на 7 дней вперёд.
     </div>
-    
+
     <div style="margin-top: 20px;">
-        <h3>Возможные причины:</h3>
-        <ul style="margin-left: 20px; line-height: 1.8;">
-            <li>На эту дату нет запланированных роликов</li>
-            <li>Радиостанция не активна в этот период</li>
-            <li>Проверьте, правильно ли выбрана дата</li>
-        </ul>
-    </div>
-    
-    <div style="margin-top: 30px; text-align: center;">
-        <a href="/" class="back-link" style="display: inline-block;">← Вернуться на главную</a>
+        <a href="/" class="back-link">← Назад на главную</a>
     </div>
 {% endif %}
-
-<style>
-    ul {
-        list-style-type: disc;
-    }
-    
-    h3 {
-        font-size: 16px;
-    }
-</style>
 {% endblock %}

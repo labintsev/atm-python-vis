@@ -124,7 +124,11 @@ def schedule():
             fig = visualizer.get_figure(radio_id, radio_name)
             
             # Convert figure to HTML
-            graph_html = fig.to_html(full_html=False, include_plotlyjs='cdn')
+            graph_html = fig.to_html(
+                full_html=False,
+                include_plotlyjs='cdn',
+                # config={"responsive": True}
+            )
         except Exception as e:
             print(f"Visualization error: {e}")
             return f"Ошибка при создании визуализации: {str(e)}", 500

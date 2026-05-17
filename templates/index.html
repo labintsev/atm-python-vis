@@ -30,14 +30,15 @@
     <h2 style="margin-top: 30px;">📡 Доступные радиостанции:</h2>
     <div class="radios-grid">
         {% if radios %}
-            {% for radio in radios %}
+            {% for radio_id, radio_name in radios.items() %}
             <button 
                 class="radio-button" 
-                onclick="selectRadio('{{ radio }}', '{{ radios[radio] }}')"
-                title="{{ radios[radio] }}"
+                type="button"
+                onclick="selectRadio( '{{ radio_id }}', '{{ radio_name }}' )"
+                title="{{ radio_name }}"
             >
-                <strong>{{ radios[radio] }}</strong>
-                <span class="radio-id">#{{ radio }}</span>
+                <strong>{{ radio_name }}</strong>
+                <span class="radio-id">#{{ radio_id }}</span>
             </button>
             {% endfor %}
         {% else %}

@@ -11,60 +11,68 @@
             box-sizing: border-box;
         }
 
-        body {
+        html {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f2f3f5;
+            color: #111;
+        }
+
+        body {
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: white;
+            background: #fff;
             border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 30px;
+            padding: 24px;
         }
 
         header {
-            margin-bottom: 30px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e2e2;
+            padding-bottom: 16px;
         }
 
         h1 {
-            color: #333;
             font-size: 28px;
-            margin-bottom: 5px;
+            color: #111;
+            margin-bottom: 8px;
         }
 
         h2 {
-            color: #555;
             font-size: 20px;
-            margin-bottom: 20px;
+            color: #333;
+            margin-bottom: 18px;
         }
 
         .header-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 15px;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
         .back-link {
-            display: inline-block;
-            padding: 10px 15px;
-            background: #667eea;
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: #fff;
+            color: #111;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             text-decoration: none;
-            border-radius: 5px;
             font-weight: 500;
-            transition: background 0.3s ease;
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
 
         .back-link:hover {
-            background: #764ba2;
+            background: #f7f7f7;
+            border-color: #bbb;
         }
 
         .form-group {
@@ -74,129 +82,115 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
             font-size: 14px;
+            color: #333;
         }
 
         input[type="date"],
         input[type="text"],
         select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             font-size: 14px;
-            font-family: inherit;
-            transition: border-color 0.3s ease;
+            background: #fff;
+            color: #111;
+            transition: border-color 0.2s ease;
         }
 
         input[type="date"]:focus,
         input[type="text"]:focus,
         select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #888;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
         }
 
         button {
-            padding: 12px 20px;
-            background: #667eea;
-            color: white;
+            padding: 12px 18px;
+            background: #111;
+            color: #fff;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.2s ease;
         }
 
         button:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            background: #333;
         }
 
         button:active {
-            transform: translateY(0);
+            transform: none;
         }
 
         .radios-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
         }
 
         .radio-button {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border: 2px solid #ddd;
+            padding: 14px 16px;
+            background: #fff;
+            border: 1px solid #ccc;
             border-radius: 8px;
+            color: #111;
             text-align: center;
             text-decoration: none;
-            color: #333;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80px;
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
 
         .radio-button:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .radio-button.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+            background: #f7f7f7;
+            border-color: #999;
         }
 
         .radio-id {
+            display: block;
+            margin-top: 6px;
             font-size: 12px;
-            opacity: 0.8;
-            margin-top: 5px;
+            color: #666;
         }
 
         .graph-container {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            margin-top: 20px;
+            padding: 0;
+            background: transparent;
+            border: none;
         }
 
         .no-data {
-            padding: 40px;
+            padding: 28px;
             text-align: center;
-            color: #999;
-            font-size: 16px;
+            color: #666;
+            font-size: 15px;
+        }
+
+        .error-message,
+        .success-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
 
         .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #c33;
+            background: #fff1f0;
+            color: #9b1c1c;
+            border: 1px solid #ebb3b1;
         }
 
         .success-message {
-            background: #efe;
-            color: #3c3;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3c3;
+            background: #eff7ee;
+            color: #1f6b2e;
+            border: 1px solid #b3d6b5;
         }
 
         .info-text {
@@ -206,21 +200,26 @@
         }
 
         footer {
-            margin-top: 40px;
+            margin-top: 32px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #e8e8e8;
             text-align: center;
-            color: #999;
-            font-size: 12px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .plotly-graph-div,
+        .js-plotly-plot {
+            max-width: 100% !important;
         }
 
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
+                padding: 18px;
             }
 
             h1 {
-                font-size: 22px;
+                font-size: 24px;
             }
 
             .radios-grid {
@@ -230,7 +229,7 @@
             .header-nav {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 15px;
+                gap: 14px;
             }
         }
     </style>

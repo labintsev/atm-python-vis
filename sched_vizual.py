@@ -143,8 +143,9 @@ class RadioScheduleVisualizer:
                 range=[-0.5, 24],
                 gridcolor="lightgray",
             ),
+            margin=dict(l=50, r=30, t=70, b=120),            
             height=1200,
-            width=1200,
+            width=1000,
             hoverlabel=dict(bgcolor="white", font_size=11),
             plot_bgcolor="white",
         )
