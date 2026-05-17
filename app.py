@@ -49,7 +49,7 @@ def index():
             return "Ошибка: соединение с базой данных не установлено", 500
         
         # Get list of radio stations from database
-        radios = db.query_radios()
+        radios = db.query_radio_names()
         
         # Default date
         default_date = "2026-04-01"
@@ -99,6 +99,8 @@ def schedule():
         
         # Get data from database
         try:
+            radio_names = db.query_radio_names()
+            radio_name = radio_names[radio_id] if radio_id in radio_names else f"RadioID {radio_id}"
             df = db.query_scheds(radio_id, date_start, date_end)
         except Exception as e:
             print(f"Database query error: {e}")
@@ -109,15 +111,13 @@ def schedule():
             return render_template(
                 'schedule.html',
                 radio_id=radio_id,
-                radio_name="Неизвестная",
+                radio_name=radio_name,
                 date=date_str,
                 graph_html="<p>Нет данных для выбранной радиостанции и периода</p>",
                 has_data=False
             )
         
-        # Get radio name from data
-        radio_name = df['Radio'].iloc[0] if 'Radio' in df.columns and len(df) > 0 else f"RadioID {radio_id}"
-        
+
         # Create visualizer and get figure
         try:
             visualizer = RadioScheduleVisualizer(df)

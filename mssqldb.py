@@ -114,7 +114,7 @@ class MSSQLDatabase:
             print(f"❌ Ошибка выполнения запроса: {e}")
             raise
 
-    def query_radios(self) -> List[Dict[str, Union[int, str]]]:
+    def query_radio_names(self) -> Dict[int, str]:
         """
         Получение списка всех RadioID и их названий
         """
@@ -122,7 +122,7 @@ class MSSQLDatabase:
         try:
             radios_df = pd.read_sql(query, self.connection)
             print(f"✅ Получено {len(radios_df)} уникальных RadioID")
-            return radios_df.to_dict('records')
+            return dict(zip(radios_df['RadioID'], radios_df['Radio']))
         except Exception as e:
             print(f"❌ Ошибка получения RadioID: {e}")
             raise
@@ -150,10 +150,10 @@ def main():
         db.connect()
 
         # Использование DataFrame для анализа данных
-        radios = db.query_radios()
+        radios = db.query_radio_names()
         print("📻 Доступные радиостанции:")
         for radio in radios:
-            print(f"  - {radio['RadioID']}: {radio['Radio']}")
+            print(f"  - {radio}: {radios[radio]}")
 
         try:
             radio_id = input("\nВведите RadioID для получения данных: ")
@@ -185,7 +185,7 @@ def main():
     print("\n")
 
     # Запуск визуализации
-    radio_name = radios[radio_id-1]["Radio"] 
+    radio_name = radios[radio_id] if radio_id in radios else f"RadioID {radio_id}"
     visualizer.interactive_visualization(radio_id, radio_name)
 
 

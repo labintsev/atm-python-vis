@@ -33,11 +33,11 @@
             {% for radio in radios %}
             <button 
                 class="radio-button" 
-                onclick="selectRadio({{ radio.RadioID }}, '{{ radio.Radio }}')"
-                title="{{ radio.Radio }}"
+                onclick="selectRadio('{{ radio }}', '{{ radios[radio] }}')"
+                title="{{ radios[radio] }}"
             >
-                <strong>{{ radio.Radio }}</strong>
-                <span class="radio-id">#{{ radio.RadioID }}</span>
+                <strong>{{ radios[radio] }}</strong>
+                <span class="radio-id">#{{ radio }}</span>
             </button>
             {% endfor %}
         {% else %}
