@@ -49,10 +49,10 @@ def index():
             return "Ошибка: соединение с базой данных не установлено", 500
         
         # Get list of radio stations from database
-        radios = db.query_radio_names()
+        radios = db.query_radio_points()
         
-        # Default date
-        default_date = "2026-04-01"
+        # Default date today
+        default_date = datetime.now().strftime('%Y-%m-%d')
         
         return render_template(
             'index.html',
@@ -85,7 +85,7 @@ def schedule():
             return "Ошибка: не указан radio_id", 400
         
         if date_str is None:
-            return "Ошибка: не указана дата", 400
+            date_str = datetime.now().strftime('%Y-%m-%d')
         
         # Validate date format
         try:
@@ -99,7 +99,7 @@ def schedule():
         
         # Get data from database
         try:
-            radio_names = db.query_radio_names()
+            radio_names = db.query_radio_points()
             radio_name = radio_names[radio_id] if radio_id in radio_names else f"RadioID {radio_id}"
             df = db.query_scheds(radio_id, date_start, date_end)
         except Exception as e:
@@ -120,8 +120,8 @@ def schedule():
 
         # Create visualizer and get figure
         try:
-            visualizer = RadioScheduleVisualizer(df)
-            fig = visualizer.get_figure(radio_id, radio_name)
+            visualizer = RadioScheduleVisualizer(df, radio_id, radio_name)
+            fig = visualizer.get_figure()
             
             # Convert figure to HTML
             graph_html = fig.to_html(

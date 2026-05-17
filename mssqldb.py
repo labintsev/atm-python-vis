@@ -74,37 +74,35 @@ class MSSQLDatabase:
         """
         query = """
         SELECT        
-            H.SchID, 
-            H.SchDate, 
-            H.Start, 
-            H.Stop, 
-            H.State, 
-            H.ClipID, 
-            H.CatID, 
-            H.PlanID, 
-            H.Bonus, 
-            H.MarkID, 
-            H.Rate, 
-            H.Cat, 
-            H.OrderID, 
-            H.Clip, 
-            H.RealDur, 
-            H.Attach, 
-            O.RadioID, 
+            S.SchID, 
+            S.SchDate, 
+            S.Start, 
+            S.Stop, 
+            S.PlanID, 
+            S.OrderID, 
+            S.Clip, 
+            S.RealDur, 
+            S.Attach, 
             O.Title, 
             O.Customer, 
             O.Client, 
-            O.Responsible
+            O.Responsible,
+            P.PointID,
+            P.Point
         FROM            
-            dbo.Scheds_V AS H 
+            dbo.Scheds_V AS S 
         INNER JOIN 
-            dbo.Orders_V AS O ON H.OrderID = O.OrderID
+            dbo.Orders_V AS O ON S.OrderID = O.OrderID
+        INNER JOIN
+            dbo.Plans AS PL ON O.OrderID = PL.OrderID
+        INNER JOIN
+            dbo.Points AS P ON PL.PointID = P.PointID
         WHERE 
-            O.RadioID = ?
-            AND H.SchDate BETWEEN CONVERT(date, ?) AND CONVERT(date, ?)
+            P.PointID = ?  -- Поиск по PointID вместо RadioID
+            AND S.SchDate BETWEEN CONVERT(date, ?) AND CONVERT(date, ?)
         ORDER BY 
-            H.SchDate, 
-            H.Start
+            S.SchDate, 
+            S.Start
         """
         try:
             self.df = pd.read_sql(query, self.connection, params=[radio_id, date_start, date_end])
@@ -114,17 +112,17 @@ class MSSQLDatabase:
             print(f"❌ Ошибка выполнения запроса: {e}")
             raise
 
-    def query_radio_names(self) -> Dict[int, str]:
+    def query_radio_points(self) -> Dict[int, str]:
         """
         Получение списка всех RadioID и их названий
         """
-        query = "SELECT DISTINCT RadioID, Radio FROM dbo.Radios ORDER BY RadioID"
+        query = "SELECT DISTINCT PointID, Point FROM dbo.Points ORDER BY PointID"
         try:
             radios_df = pd.read_sql(query, self.connection)
-            print(f"✅ Получено {len(radios_df)} уникальных RadioID")
-            return dict(zip(radios_df['RadioID'], radios_df['Radio']))
+            print(f"✅ Получено {len(radios_df)} уникальных PointID")
+            return dict(zip(radios_df['PointID'], radios_df['Point']))
         except Exception as e:
-            print(f"❌ Ошибка получения RadioID: {e}")
+            print(f"❌ Ошибка получения PointID: {e}")
             raise
 
 
@@ -150,23 +148,23 @@ def main():
         db.connect()
 
         # Использование DataFrame для анализа данных
-        radios = db.query_radio_names()
+        radios = db.query_radio_points()
         print("📻 Доступные радиостанции:")
         for radio in radios:
             print(f"  - {radio}: {radios[radio]}")
 
         try:
-            radio_id = input("\nВведите RadioID для получения данных: ")
-            radio_id = int(radio_id)
+            radio_point_id = input("\nВведите PointID для получения данных: ")
+            radio_point_id = int(radio_point_id)
         except ValueError:
-            print("❌ Некорректный RadioID. Должно быть целое число.")
+            print("❌ Некорректный PointID. Должно быть целое число.")
             return
 
-        df = db.query_scheds(radio_id, date_start=date_start, date_end=date_end)
+        df = db.query_scheds(radio_point_id, date_start=date_start, date_end=date_end)
         if not df.empty:
             print(df.head(10))
             print(f"\nВсего таблиц в БД: {len(df)}")
-            # df.to_csv("scheds_orders_tmp.csv", index=False)
+            df.to_csv("scheds_orders_tmp.csv", index=False)
 
     except Exception as e:
         print(f"Произошла ошибка: {e}")
@@ -174,19 +172,16 @@ def main():
     finally:
         # Закрытие соединения
         db.disconnect()
-        # Создание визуализатора и подготовка данных
-    visualizer = RadioScheduleVisualizer(df)
 
     # Вывод первых строк для проверки
     print("Пример данных:")
-    print(
-        df[["SchDate", "Start", "Stop", "Customer", "Start_Time", "RadioID"]].head(10)
-    )
+    print(df.head(10))
     print("\n")
 
-    # Запуск визуализации
-    radio_name = radios[radio_id] if radio_id in radios else f"RadioID {radio_id}"
-    visualizer.interactive_visualization(radio_id, radio_name)
+    # Создание визуализатора и подготовка данных
+    radio_name = radios[radio_point_id] if radio_point_id in radios else f"PointID {radio_point_id}"
+    visualizer = RadioScheduleVisualizer(df, radio_point_id, radio_name=radio_name)
+    visualizer.get_figure().show()
 
 
 if __name__ == "__main__":
