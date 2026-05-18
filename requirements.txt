@@ -4,3 +4,4 @@ python-dotenv
 numpy
 plotly
 flask
+flask-login

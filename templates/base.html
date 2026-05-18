@@ -56,6 +56,34 @@
             flex-wrap: wrap;
         }
 
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #f2f3f5;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 14px;
+            background: #d32f2f;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #b71c1c;
+        }
+
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -237,6 +265,17 @@
 </head>
 <body>
     <div class="container">
+        {% if current_user.is_authenticated %}
+        <header>
+            <div class="header-nav">
+                <div></div>
+                <div class="user-info">
+                    <span>👤 {{ current_user.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Выход</a>
+                </div>
+            </div>
+        </header>
+        {% endif %}
         {% block content %}{% endblock %}
         <footer>
             <p>Визуализация расписания радиостанций ATM © 2026</p>

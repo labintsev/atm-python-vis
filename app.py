@@ -1,12 +1,39 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 from datetime import datetime, timedelta
 import os
 import sys
 from mssqldb import MSSQLDatabase
 from sched_vizual import RadioScheduleVisualizer
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "dev-secret-key-change-this")
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+# Simple User class for authentication
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
+        self.username = username
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    # In a real app, you'd query a database. Here we just verify the username exists
+    auth_username = os.getenv("AUTH_USERNAME")
+    if user_id == auth_username:
+        return User(user_id)
+    return None
+
 
 # Global database instance
 db = None
@@ -37,7 +64,40 @@ def init_db():
         return False
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        auth_username = os.getenv("AUTH_USERNAME")
+        auth_password = os.getenv("AUTH_PASSWORD")
+        
+        # Validate credentials
+        if username == auth_username and password == auth_password:
+            user = User(username)
+            login_user(user)
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', error='Неверное имя пользователя или пароль')
+    
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Logout route"""
+    logout_user()
+    return redirect(url_for('login'))
+
+
 @app.route('/')
+@login_required
 def index():
     """Main page with list of radio stations and date picker"""
     try:
@@ -66,6 +126,7 @@ def index():
 
 
 @app.route('/schedule')
+@login_required
 def schedule():
     """Schedule page with Plotly visualization"""
     try:
@@ -160,10 +221,6 @@ def server_error(error):
 
 
 if __name__ == '__main__':
-    # Load environment variables
-    from dotenv import load_dotenv
-    load_dotenv()
-    
     # Initialize database
     if init_db():
         app.run(debug=True, host='localhost', port=5005)

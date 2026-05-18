@@ -98,7 +98,7 @@ class MSSQLDatabase:
         INNER JOIN
             dbo.Points AS P ON PL.PointID = P.PointID
         WHERE 
-            P.PointID = ?  -- Поиск по PointID вместо RadioID
+            P.PointID = ?  -- Поиск по PointID 
             AND S.SchDate BETWEEN CONVERT(date, ?) AND CONVERT(date, ?)
         ORDER BY 
             S.SchDate, 
@@ -141,8 +141,8 @@ def main():
         password=os.getenv("DB_PASSWORD"),
     )
     df = None
-    date_start = "2024-04-16"
-    date_end = "2024-04-22"
+    date_start = "2025-04-16"
+    date_end = "2025-04-22"
     try:
         # Подключение к БД
         db.connect()

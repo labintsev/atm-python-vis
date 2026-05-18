@@ -120,7 +120,11 @@ class RadioScheduleVisualizer:
             for st in start_times:
                 start_time_str = f"{st//3600:02d}:{(st%3600)//60:02d}"
                 response_names_in_block = day_data[day_data["Start"] == st]["Responsible"].tolist()
-                responses_to_show = "<br>".join([r for r in response_names_in_block])
+                tracks_in_block = day_data[day_data["Start"] == st]["Clip"].tolist()
+                responses_to_show = ""
+                for t, r in zip(tracks_in_block, response_names_in_block):
+                    responses_to_show += f" {r} - {t}<br>"
+                
                 hover_texts.append(start_time_str + "<br>" + responses_to_show)
                 most_common = max(set(response_names_in_block), key=response_names_in_block.count)
                 most_common_responsibles.append(most_common)
