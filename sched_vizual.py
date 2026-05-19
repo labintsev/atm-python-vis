@@ -36,12 +36,12 @@ class RadioScheduleVisualizer:
             raise ValueError("DataFrame не может быть пустым")
         weekly_df = df[df["PointID"] == radio_point_id]
         if weekly_df.empty:
-            print(f"❌ Нет данных для PointID {radio_point_id}")
+            print(f"Нет данных для PointID {radio_point_id}")
             return go.Figure()
         dates = sorted(weekly_df["SchDate"].unique())
         if len(dates) != 7:
             print(
-                f"⚠️ Ожидалось 7 дней данных, но найдено {len(dates)}."
+                f"Ожидалось 7 дней данных, но найдено {len(dates)}."
             )
         self.radio_point_id = radio_point_id
         self.radio_name = radio_name
@@ -176,6 +176,7 @@ class RadioScheduleVisualizer:
             width=1000,
             hoverlabel=dict(bgcolor="white", font_size=11),
             plot_bgcolor="white",
+            dragmode='pan'
         )
 
         return fig

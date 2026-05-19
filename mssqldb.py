@@ -106,10 +106,10 @@ class MSSQLDatabase:
         """
         try:
             self.df = pd.read_sql(query, self.connection, params=[radio_id, date_start, date_end])
-            print(f"✅ Запрос выполнен успешно. DataFrame размер: {self.df.shape}")
+            print(f"Запрос выполнен успешно. DataFrame размер: {self.df.shape}")
             return self.df
         except Exception as e:
-            print(f"❌ Ошибка выполнения запроса: {e}")
+            print(f"Ошибка выполнения запроса: {e}")
             raise
 
     def query_radio_points(self) -> Dict[int, str]:
@@ -119,10 +119,10 @@ class MSSQLDatabase:
         query = "SELECT DISTINCT PointID, Point FROM dbo.Points ORDER BY PointID"
         try:
             radios_df = pd.read_sql(query, self.connection)
-            print(f"✅ Получено {len(radios_df)} уникальных PointID")
+            print(f"Получено {len(radios_df)} уникальных PointID")
             return dict(zip(radios_df['PointID'], radios_df['Point']))
         except Exception as e:
-            print(f"❌ Ошибка получения PointID: {e}")
+            print(f"Ошибка получения PointID: {e}")
             raise
 
 
@@ -157,7 +157,7 @@ def main():
             radio_point_id = input("\nВведите PointID для получения данных: ")
             radio_point_id = int(radio_point_id)
         except ValueError:
-            print("❌ Некорректный PointID. Должно быть целое число.")
+            print("Некорректный PointID. Должно быть целое число.")
             return
 
         df = db.query_scheds(radio_point_id, date_start=date_start, date_end=date_end)
