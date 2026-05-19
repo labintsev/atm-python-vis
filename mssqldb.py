@@ -47,11 +47,11 @@ class MSSQLDatabase:
 
             self.connection = pyodbc.connect(conn_str)
             print(
-                f"✅ Успешно подключено к БД '{self.database}' на сервере '{self.server}'"
+                f"Успешно подключено к БД '{self.database}' на сервере '{self.server}'"
             )
 
         except pyodbc.Error as e:
-            print(f"❌ Ошибка подключения к БД: {e}")
+            print(f"Ошибка подключения к БД: {e}")
             raise
 
     def disconnect(self) -> None:

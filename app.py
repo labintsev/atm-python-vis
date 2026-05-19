@@ -12,6 +12,14 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "dev-secret-key-change-this")
+# Production configuration
+app.config['ENV'] = 'production'
+app.config['DEBUG'] = False
+# app.config['PREFERRED_URL_SCHEME'] = 'https'  # Traefik sends X-Forwarded-Proto
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['TRUST_X_FOR_PROXY_COUNT'] = 1  # Trust Traefik headers
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -55,11 +63,11 @@ def init_db():
             password=os.getenv("DB_PASSWORD"),
         )
         db.connect()
-        print("✅ Database connected successfully")
+        print("Database connected successfully")
         db_initialized = True
         return True
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        print(f"Database connection failed: {e}")
         db_initialized = True
         return False
 
@@ -223,7 +231,7 @@ def server_error(error):
 if __name__ == '__main__':
     # Initialize database
     if init_db():
-        app.run(debug=True, host='localhost', port=5005)
+        app.run(debug=True, host='localhost', port=5006)
     else:
         print("Failed to initialize database. Exiting.")
         sys.exit(1)
