@@ -265,9 +265,17 @@
 </head>
 <body>
     <div class="container">
-
-
-
+        {% if current_user.is_authenticated %}
+        <header>
+            <div class="header-nav">
+                <div></div>
+                <div class="user-info">
+                    <span>👤 {{ current_user.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Выход</a>
+                </div>
+            </div>
+        </header>
+        {% endif %}
         {% block content %}{% endblock %}
         <footer>
             <p>Визуализация расписания радиостанций ATM © 2026</p>
