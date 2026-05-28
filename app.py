@@ -1,16 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_file
 from flask_login import (
     LoginManager,
     UserMixin,
     login_required,
     login_user,
     logout_user,
-    )
+)
 from datetime import datetime, timedelta
 import os
 import sys
 from mssqldb import MSSQLDatabase
 from sched_vizual import RadioScheduleVisualizer
+from exel_template import ExcelTemplateGenerator
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -125,12 +126,14 @@ def index():
             return "Ошибка: соединение с базой данных не установлено", 500
 
         # Get list of radio stations from database
-        radios = db.query_radio_points()
+        app.config["radios"] = db.query_radio_points()
 
         # Default date today
         default_date = datetime.now().strftime("%Y-%m-%d")
 
-        return render_template("index.html", radios=radios, default_date=default_date)
+        return render_template(
+            "index.html", radios=app.config["radios"], default_date=default_date
+        )
 
     except Exception as e:
         print(f"Error in index route: {e}")
@@ -219,6 +222,59 @@ def schedule():
 
     except Exception as e:
         print(f"Error in schedule route: {e}")
+        return f"Ошибка: {str(e)}", 500
+
+
+@app.route("/schedule/export")
+@login_required
+def export_schedule():
+    """Export the selected schedule to an Excel file."""
+    try:        
+        if not db_initialized:
+            init_db()
+
+        if db is None:
+            return "Ошибка: соединение с базой данных не установлено", 500
+
+        radio_id = request.args.get("radio_id", type=int)
+        radio_name = (
+            app.config["radios"].get(radio_id, f"RadioID {radio_id}")
+            if "radios" in app.config
+            else f"RadioID {radio_id}"
+        )
+        date_str = request.args.get("date", type=str)
+
+        if radio_id is None:
+            return "Ошибка: не указан radio_id", 400
+
+        if date_str is None:
+            date_str = datetime.now().strftime("%Y-%m-%d")
+
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            return "Ошибка: неверный формат даты (используйте YYYY-MM-DD)", 400
+
+        date_start = date_str
+        date_end = (date_obj + timedelta(days=30)).strftime("%Y-%m-%d")
+
+        try:
+            df = db.query_scheds(radio_id, date_start, date_end)
+        except Exception as e:
+            print(f"Database query error: {e}")
+            return f"Ошибка при запросе к базе данных: {str(e)}", 500
+
+        if df.empty:
+            return "Нет данных для выбранной радиостанции и периода", 404
+
+        output_file = f"data/МП_{radio_name}_{date_str}.xlsx"
+        generator = ExcelTemplateGenerator(df, output_path=output_file)
+        generator.generate()
+
+        return send_file(output_file, as_attachment=True)
+
+    except Exception as e:
+        print(f"Error in export_schedule route: {e}")
         return f"Ошибка: {str(e)}", 500
 
 

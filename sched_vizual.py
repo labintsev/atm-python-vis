@@ -1,5 +1,5 @@
 import datetime
-from json import load
+import logging
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -66,9 +66,7 @@ class RadioScheduleVisualizer:
             )
             .reset_index()
         )
-        self.df["BlockLoad"] = (
-            self.df["TotalRealDur"] / self.df["BlockLen"]
-        )
+        self.df["BlockLoad"] = self.df["TotalRealDur"] / self.df["BlockLen"]
 
     def _format_dateetimes(self):
         # Преобразование Start в часы и минуты
@@ -100,7 +98,9 @@ class RadioScheduleVisualizer:
             block_lengths = day_df["BlockLen"].tolist()
             total_real_durations = day_df["TotalRealDur"].tolist()
             hover_texts = [
-                f"""Начало: {datetime.timedelta(seconds=bt)}<br>
+                f"""
+Дата: {date.strftime('%Y-%m-%d')}<br>
+Начало: {datetime.timedelta(seconds=bt)}<br>
 Длительность: {datetime.timedelta(seconds=bl)}<br>
 Суммарная: {datetime.timedelta(seconds=trd)}<br>
 Загрузка: {load:.0%}"""
@@ -144,12 +144,11 @@ class RadioScheduleVisualizer:
             ),
             yaxis=dict(
                 title="⏰ Время суток (часы)",
-                tickmode="linear",
-                tick0=0,
-                dtick=1,
-                tickvals=list(range(0, 25, 2)),
-                ticktext=[f"{h:02d}:00" for h in range(0, 25, 2)],
-                range=[-0.5, 24],
+                tickmode="array",
+                tickvals=list(range(0, 25, 1)),
+                ticktext=[f"{h:02d}:00" for h in range(0, 25, 1)],
+                range=[0, 24],
+                autorange="reversed",
                 gridcolor="lightgray",
             ),
             margin=dict(l=50, r=30, t=70, b=120),
@@ -174,29 +173,18 @@ class RadioScheduleVisualizer:
 
 # Пример использования
 if __name__ == "__main__":
-    # Configure logging for main execution
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=[
-            logging.FileHandler('logs/service.log'),
-            logging.StreamHandler()
-        ]
-    )
-    
-    # Создание тестовых данных (7 дней)
+    # Создание тестовых данных
     df = pd.read_csv("scheds_orders_tmp.csv")
 
     # ID радиостанции для демонстрации
-    radio_point_id = 17
+    radio_point_id = 1
 
     # Создание визуализатора и подготовка данных
     visualizer = RadioScheduleVisualizer(df, radio_point_id, radio_name="Some name")
 
     # Вывод первых строк для проверки
-    logger.info("Пример данных:")
-    logger.info(f"\n{df.head(10).to_string()}")
-
+    print("Пример данных:")
+    print(visualizer.df.head(10).to_string())
+    visualizer.df.to_csv("data/scheds_orders_prepared.csv", index=False)
     # Запуск визуализации
     visualizer.get_figure().show()

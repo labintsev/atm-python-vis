@@ -11,27 +11,30 @@
                 Расписание роликов с {{ date }} на 7 дней
             </p>
         </div>
-        <a href="/" class="back-link">← Назад на главную</a>
+        <div class="page-actions">
+            <a href="/" class="back-link">← Назад на главную</a>
+            <a href="/schedule/export?radio_id={{ radio_id }}&date={{ date }}" class="back-link">Скачать МП</a>
+        </div>
     </div>
 </header>
 
 {% if has_data %}
-    <div class="graph-container">
-        {{ graph_html | safe }}
-    </div>
+<div class="graph-container">
+    {{ graph_html | safe }}
+</div>
 
-    <div style="margin-top: 20px;">
-        <a href="/" class="back-link">← Назад на главную</a>
-    </div>
+<div style="margin-top: 20px;">
+    <a href="/" class="back-link">← Назад на главную</a>
+</div>
 
 {% else %}
-    <div class="error-message" style="margin: 30px 0;">
-        ⚠️ Нет данных для радиостанции <strong>{{ radio_name }}</strong> (RadioID: {{ radio_id }}) 
-        с даты <strong>{{ date }}</strong> на 7 дней вперёд.
-    </div>
+<div class="error-message" style="margin: 30px 0;">
+    ⚠️ Нет данных для радиостанции <strong>{{ radio_name }}</strong> (RadioID: {{ radio_id }})
+    с даты <strong>{{ date }}</strong> на 7 дней вперёд.
+</div>
 
-    <div style="margin-top: 20px;">
-        <a href="/" class="back-link">← Назад на главную</a>
-    </div>
+<div style="margin-top: 20px;">
+    <a href="/" class="back-link">← Назад на главную</a>
+</div>
 {% endif %}
 {% endblock %}

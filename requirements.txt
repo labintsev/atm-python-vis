@@ -1,5 +1,6 @@
 pandas
 pyodbc
+openpyxl
 python-dotenv
 numpy
 plotly
