@@ -162,9 +162,9 @@ def schedule():
         except ValueError:
             return "Ошибка: неверный формат даты (используйте YYYY-MM-DD)", 400
         
-        # Calculate date range (7 days from the selected date)
+        # Calculate date range (30 days from the selected date)
         date_start = date_str
-        date_end = (date_obj + timedelta(days=7)).strftime('%Y-%m-%d')
+        date_end = (date_obj + timedelta(days=30)).strftime('%Y-%m-%d')
         
         # Get data from database
         try:
@@ -185,8 +185,6 @@ def schedule():
                 graph_html="<p>Нет данных для выбранной радиостанции и периода</p>",
                 has_data=False
             )
-        
-
         # Create visualizer and get figure
         try:
             visualizer = RadioScheduleVisualizer(df, radio_id, radio_name)

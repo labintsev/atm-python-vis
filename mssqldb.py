@@ -142,7 +142,7 @@ def main():
     )
     df = None
     date_start = "2025-04-16"
-    date_end = "2025-04-22"
+    date_end = "2025-05-16"
     try:
         # Подключение к БД
         db.connect()
