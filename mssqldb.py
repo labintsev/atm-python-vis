@@ -3,8 +3,21 @@ import pandas as pd
 from typing import Optional, Union, List, Dict
 import dotenv
 import os
+import logging
 
 from sched_vizual import RadioScheduleVisualizer
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler('logs/service.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 dotenv.load_dotenv()  # Загружаем переменные окружения из .env файла
 
@@ -46,19 +59,19 @@ class MSSQLDatabase:
             conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server},{self.port};DATABASE={self.database};UID={self.username};PWD={self.password};"
 
             self.connection = pyodbc.connect(conn_str)
-            print(
-                f"Успешно подключено к БД '{self.database}' на сервере '{self.server}'"
+            logger.info(
+                f"Successfully connected to DB '{self.database}' on server '{self.server}'"
             )
 
         except pyodbc.Error as e:
-            print(f"Ошибка подключения к БД: {e}")
+            logger.error(f"Error connecting to DB: {e}")
             raise
 
     def disconnect(self) -> None:
         """Закрытие соединения с БД"""
         if self.connection:
             self.connection.close()
-            print("🔌 Соединение с БД закрыто")
+            logger.info("Successfully disconnected from DB")
 
     def query_scheds(self, radio_id, date_start, date_end) -> pd.DataFrame:
         """
@@ -106,10 +119,10 @@ class MSSQLDatabase:
         """
         try:
             self.df = pd.read_sql(query, self.connection, params=[radio_id, date_start, date_end])
-            print(f"Запрос выполнен успешно. DataFrame размер: {self.df.shape}")
+            logger.info(f"Query executed successfully. DataFrame size: {self.df.shape}")
             return self.df
         except Exception as e:
-            print(f"Ошибка выполнения запроса: {e}")
+            logger.error(f"Error executing query: {e}")
             raise
 
     def query_radio_points(self) -> Dict[int, str]:
@@ -119,10 +132,10 @@ class MSSQLDatabase:
         query = "SELECT DISTINCT PointID, Point FROM dbo.Points ORDER BY PointID"
         try:
             radios_df = pd.read_sql(query, self.connection)
-            print(f"Получено {len(radios_df)} уникальных PointID")
+            logger.info(f"Query executed successfully. DataFrame size: {len(radios_df)} ")
             return dict(zip(radios_df['PointID'], radios_df['Point']))
         except Exception as e:
-            print(f"Ошибка получения PointID: {e}")
+            logger.error(f"Error fetching PointID: {e}")
             raise
 
 
@@ -149,15 +162,15 @@ def main():
 
         # Использование DataFrame для анализа данных
         radios = db.query_radio_points()
-        print("📻 Доступные радиостанции:")
+        logger.info("Available radio points:")
         for radio in radios:
-            print(f"  - {radio}: {radios[radio]}")
+            logger.info(f"  - {radio}: {radios[radio]}")
 
         try:
             radio_point_id = input("\nВведите PointID для получения данных: ")
             radio_point_id = int(radio_point_id)
         except ValueError:
-            print("Некорректный PointID. Должно быть целое число.")
+            logger.error("Некорректный PointID. Должно быть целое число.")
             return
 
         df = db.query_scheds(radio_point_id, date_start=date_start, date_end=date_end)
@@ -167,16 +180,15 @@ def main():
             df.to_csv("scheds_orders_tmp.csv", index=False)
 
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        logger.error(f"Произошла ошибка: {e}")
 
     finally:
         # Закрытие соединения
         db.disconnect()
 
     # Вывод первых строк для проверки
-    print("Пример данных:")
-    print(df.head(10))
-    print("\n")
+    logger.info("Пример данных:")
+    logger.info(f"\n{df.head(10).to_string()}")
 
     # Создание визуализатора и подготовка данных
     radio_name = radios[radio_point_id] if radio_point_id in radios else f"PointID {radio_point_id}"

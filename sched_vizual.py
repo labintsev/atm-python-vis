@@ -174,21 +174,29 @@ class RadioScheduleVisualizer:
 
 # Пример использования
 if __name__ == "__main__":
-    # Создание тестовых данных (30 дней)
+    # Configure logging for main execution
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.FileHandler('logs/service.log'),
+            logging.StreamHandler()
+        ]
+    )
+    
+    # Создание тестовых данных (7 дней)
     df = pd.read_csv("scheds_orders_tmp.csv")
 
-    # Генерируем данные для 30 дней
-    radio_point_id = 44
-
-    # Разные ролики для демонстрации
+    # ID радиостанции для демонстрации
+    radio_point_id = 17
 
     # Создание визуализатора и подготовка данных
     visualizer = RadioScheduleVisualizer(df, radio_point_id, radio_name="Some name")
 
     # Вывод первых строк для проверки
-    print("Пример данных:")
-    print(df.head(10))
-    print("\n")
+    logger.info("Пример данных:")
+    logger.info(f"\n{df.head(10).to_string()}")
 
     # Запуск визуализации
     visualizer.get_figure().show()

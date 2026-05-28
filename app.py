@@ -1,5 +1,11 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
+from flask import Flask, render_template, request, redirect, url_for
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_required,
+    login_user,
+    logout_user,
+    )
 from datetime import datetime, timedelta
 import os
 import sys
@@ -11,20 +17,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "dev-secret-key-change-this")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key-change-this")
 # Production configuration
-app.config['ENV'] = 'production'
-app.config['DEBUG'] = False
+app.config["ENV"] = "production"
+app.config["DEBUG"] = False
 # app.config['PREFERRED_URL_SCHEME'] = 'https'  # Traefik sends X-Forwarded-Proto
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['TRUST_X_FOR_PROXY_COUNT'] = 1  # Trust Traefik headers
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["TRUST_X_FOR_PROXY_COUNT"] = 1  # Trust Traefik headers
 
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = "login"
 
 
 # Simple User class for authentication
@@ -53,7 +59,7 @@ def init_db():
     global db, db_initialized
     if db_initialized:
         return db is not None
-    
+
     try:
         db = MSSQLDatabase(
             server="localhost",
@@ -72,39 +78,41 @@ def init_db():
         return False
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     """Login page"""
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
         auth_username = os.getenv("AUTH_USERNAME")
         auth_password = os.getenv("AUTH_PASSWORD")
-        
+
         # Validate credentials
         if username == auth_username and password == auth_password:
             user = User(username)
             login_user(user)
-            next_page = request.args.get('next')
+            next_page = request.args.get("next")
             if next_page:
                 return redirect(next_page)
-            return redirect(url_for('index'))
+            return redirect(url_for("index"))
         else:
-            return render_template('login.html', error='Неверное имя пользователя или пароль')
-    
-    return render_template('login.html')
+            return render_template(
+                "login.html", error="Неверное имя пользователя или пароль"
+            )
+
+    return render_template("login.html")
 
 
-@app.route('/logout')
+@app.route("/logout")
 @login_required
 def logout():
     """Logout route"""
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
 
 
-@app.route('/')
+@app.route("/")
 @login_required
 def index():
     """Main page with list of radio stations and date picker"""
@@ -112,28 +120,24 @@ def index():
         # Initialize database if not already done
         if not db_initialized:
             init_db()
-        
+
         if db is None:
             return "Ошибка: соединение с базой данных не установлено", 500
-        
+
         # Get list of radio stations from database
         radios = db.query_radio_points()
-        
+
         # Default date today
-        default_date = datetime.now().strftime('%Y-%m-%d')
-        
-        return render_template(
-            'index.html',
-            radios=radios,
-            default_date=default_date
-        )
-    
+        default_date = datetime.now().strftime("%Y-%m-%d")
+
+        return render_template("index.html", radios=radios, default_date=default_date)
+
     except Exception as e:
         print(f"Error in index route: {e}")
         return f"Ошибка при загрузке главной страницы: {str(e)}", 500
 
 
-@app.route('/schedule')
+@app.route("/schedule")
 @login_required
 def schedule():
     """Schedule page with Plotly visualization"""
@@ -141,74 +145,78 @@ def schedule():
         # Initialize database if not already done
         if not db_initialized:
             init_db()
-        
+
         if db is None:
             return "Ошибка: соединение с базой данных не установлено", 500
-        
+
         # Get parameters from request
-        radio_id = request.args.get('radio_id', type=int)
-        date_str = request.args.get('date', type=str)
-        
+        radio_id = request.args.get("radio_id", type=int)
+        date_str = request.args.get("date", type=str)
+
         # Validation
         if radio_id is None:
             return "Ошибка: не указан radio_id", 400
-        
+
         if date_str is None:
-            date_str = datetime.now().strftime('%Y-%m-%d')
-        
+            date_str = datetime.now().strftime("%Y-%m-%d")
+
         # Validate date format
         try:
-            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
         except ValueError:
             return "Ошибка: неверный формат даты (используйте YYYY-MM-DD)", 400
-        
+
         # Calculate date range (30 days from the selected date)
         date_start = date_str
-        date_end = (date_obj + timedelta(days=30)).strftime('%Y-%m-%d')
-        
+        date_end = (date_obj + timedelta(days=30)).strftime("%Y-%m-%d")
+
         # Get data from database
         try:
             radio_names = db.query_radio_points()
-            radio_name = radio_names[radio_id] if radio_id in radio_names else f"RadioID {radio_id}"
+            radio_name = (
+                radio_names[radio_id]
+                if radio_id in radio_names
+                else f"RadioID {radio_id}"
+            )
             df = db.query_scheds(radio_id, date_start, date_end)
         except Exception as e:
             print(f"Database query error: {e}")
             return f"Ошибка при запросе к базе данных: {str(e)}", 500
-        
+
         # Check if data is empty
         if df.empty:
             return render_template(
-                'schedule.html',
+                "schedule.html",
                 radio_id=radio_id,
                 radio_name=radio_name,
                 date=date_str,
                 graph_html="<p>Нет данных для выбранной радиостанции и периода</p>",
-                has_data=False
+                has_data=False,
             )
         # Create visualizer and get figure
         try:
             visualizer = RadioScheduleVisualizer(df, radio_id, radio_name)
             fig = visualizer.get_figure()
-            
+
             # Convert figure to HTML
             graph_html = fig.to_html(
                 full_html=False,
-                include_plotlyjs='cdn',
+                include_plotlyjs="cdn",
                 # config={"responsive": True}
             )
         except Exception as e:
             print(f"Visualization error: {e}")
             return f"Ошибка при создании визуализации: {str(e)}", 500
-        
+
         return render_template(
-            'schedule.html',
+            "schedule.html",
             radio_id=radio_id,
             radio_name=radio_name,
             date=date_str,
             graph_html=graph_html,
-            has_data=True
+            has_data=True,
         )
-    
+
     except Exception as e:
         print(f"Error in schedule route: {e}")
         return f"Ошибка: {str(e)}", 500
@@ -226,10 +234,10 @@ def server_error(error):
     return "Внутренняя ошибка сервера", 500
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize database
     if init_db():
-        app.run(debug=True, host='localhost', port=5006)
+        app.run(debug=True, host="localhost", port=5006)
     else:
         print("Failed to initialize database. Exiting.")
         sys.exit(1)
