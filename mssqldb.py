@@ -60,6 +60,7 @@ class MSSQLDatabase:
                 f"DATABASE={self.database};",
                 f"UID={self.username};",
                 f"PWD={self.password};"
+                "TrustServerCertificate=yes;"
                 "ConnectRetryCount=3;"  # Авто-повтор при обрыве связи (до 3 раз)
                 "ConnectRetryInterval=3;",
             )
