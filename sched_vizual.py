@@ -99,10 +99,11 @@ class RadioScheduleVisualizer:
             total_real_durations = day_df["TotalRealDur"].tolist()
             hover_texts = [
                 f"""
-Дата: {date.strftime('%Y-%m-%d')}<br>
+Дата: <b>{date.strftime('%Y-%m-%d')}</b><br>
 Начало: {datetime.timedelta(seconds=bt)}<br>
-Длительность: {datetime.timedelta(seconds=bl)}<br>
-Суммарная: {datetime.timedelta(seconds=trd)}<br>
+Блок: {datetime.timedelta(seconds=bl)}<br>
+Занято: {datetime.timedelta(seconds=trd)}<br>
+Свободно: {datetime.timedelta(seconds=max(0, bl - trd))}<br>
 Загрузка: {load:.0%}"""
                 for bt, bl, trd, load in zip(
                     block_times, block_lengths, total_real_durations, block_loads

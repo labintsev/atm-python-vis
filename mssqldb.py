@@ -1,6 +1,6 @@
 import pyodbc
 import pandas as pd
-from typing import Optional, Union, List, Dict
+from typing import Optional, Dict
 import dotenv
 import os
 import logging
@@ -10,16 +10,14 @@ from sched_vizual import RadioScheduleVisualizer
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.FileHandler('logs/service.log'),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[logging.FileHandler("logs/service.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
 dotenv.load_dotenv()  # Загружаем переменные окружения из .env файла
+pyodbc.pooling = True
 
 
 class MSSQLDatabase:
@@ -56,8 +54,16 @@ class MSSQLDatabase:
     def connect(self) -> None:
         """Установка соединения с БД"""
         try:
-            conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server},{self.port};DATABASE={self.database};UID={self.username};PWD={self.password};"
-
+            conn_props = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};",
+                f"SERVER={self.server},{self.port};",
+                f"DATABASE={self.database};",
+                f"UID={self.username};",
+                f"PWD={self.password};"
+                "ConnectRetryCount=3;"  # Авто-повтор при обрыве связи (до 3 раз)
+                "ConnectRetryInterval=3;",
+            )
+            conn_str = "".join(conn_props)
             self.connection = pyodbc.connect(conn_str)
             logger.info(
                 f"Successfully connected to DB '{self.database}' on server '{self.server}'"
@@ -118,7 +124,9 @@ class MSSQLDatabase:
             S.Start
         """
         try:
-            self.df = pd.read_sql(query, self.connection, params=[radio_id, date_start, date_end])
+            self.df = pd.read_sql(
+                query, self.connection, params=[radio_id, date_start, date_end]
+            )
             logger.info(f"Query executed successfully. DataFrame size: {self.df.shape}")
             return self.df
         except Exception as e:
@@ -132,8 +140,10 @@ class MSSQLDatabase:
         query = "SELECT DISTINCT PointID, Point FROM dbo.Points ORDER BY PointID"
         try:
             radios_df = pd.read_sql(query, self.connection)
-            logger.info(f"Query executed successfully. DataFrame size: {len(radios_df)} ")
-            return dict(zip(radios_df['PointID'], radios_df['Point']))
+            logger.info(
+                f"Query executed successfully. DataFrame size: {len(radios_df)} "
+            )
+            return dict(zip(radios_df["PointID"], radios_df["Point"]))
         except Exception as e:
             logger.error(f"Error fetching PointID: {e}")
             raise
@@ -191,7 +201,11 @@ def main():
     logger.info(f"\n{df.head(10).to_string()}")
 
     # Создание визуализатора и подготовка данных
-    radio_name = radios[radio_point_id] if radio_point_id in radios else f"PointID {radio_point_id}"
+    radio_name = (
+        radios[radio_point_id]
+        if radio_point_id in radios
+        else f"PointID {radio_point_id}"
+    )
     visualizer = RadioScheduleVisualizer(df, radio_point_id, radio_name=radio_name)
     visualizer.get_figure().show()
 
