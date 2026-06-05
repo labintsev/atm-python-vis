@@ -61,7 +61,7 @@ DB_USER=ReadOnlyUser
 DB_PASSWORD=Yourpass234!
 DB_NAME=ATM_267
 SERVER_NAME = 'localhost\SQLEXPRESS'   
-
+DRIVER_NAME = '{ODBC Driver 17 for SQL Server}'
 # Authentication Credentials
 AUTH_USERNAME=user
 AUTH_PASSWORD=SomePass

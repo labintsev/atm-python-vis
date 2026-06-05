@@ -1,14 +1,17 @@
+import os
 import pyodbc
+import dotenv
+
+dotenv.load_dotenv()  # Загружаем переменные окружения из .env файла
+
 print([d for d in pyodbc.drivers() if "SQL Server" in d])
 
-# 1. Задаем параметры подключения (подставьте ваш актуальный пароль)
-SERVER_NAME = r'localhost\SQLEXPRESS'              # Локальный экземпляр SQL Express
-DATABASE_NAME = 'ATM_267_05'              # Имя вашей базы данных
-USER_ID = 'ReadOnlyUser'                  # Созданный пользователь
-USER_PASSWORD = 'Radiocity2026!'           # Пароль пользователя
-
-# Выберите драйвер из тех, что вывела проверка на Шаге 2
-DRIVER_NAME = '{ODBC Driver 17 for SQL Server}' 
+# 1. Задаем параметры подключения 
+SERVER_NAME = os.getenv('SERVER_NAME')              # Локальный экземпляр SQL Express
+DATABASE_NAME = os.getenv('DB_NAME')              # Имя вашей базы данных
+USER_ID = os.getenv('DB_USER')                  # Созданный пользователь
+USER_PASSWORD = os.getenv('DB_PASSWORD')           # Пароль пользователя
+DRIVER_NAME = os.getenv("DRIVER_NAME") 
 
 # 2. Формируем строку подключения (Connection String)
 # ВАЖНО: Убираем параметр Trusted_Connection, так как мы используем логин/пароль
