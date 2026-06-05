@@ -63,8 +63,7 @@ def init_db():
 
     try:
         db = MSSQLDatabase(
-            server="localhost",
-            port=1435,
+            server_name=os.getenv("SERVER_NAME"),
             database=os.getenv("DB_NAME"),
             username=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),

@@ -27,8 +27,7 @@ class MSSQLDatabase:
 
     def __init__(
         self,
-        server: str = "localhost",
-        port: int = 1435,
+        server_name: str = "localhost",
         database: str = "master",
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -38,14 +37,12 @@ class MSSQLDatabase:
 
         Args:
             server: Сервер БД (по умолчанию 'localhost')
-            port: Порт (по умолчанию 1435)
             database: Имя базы данных (по умолчанию 'master')
             username: Имя пользователя (опционально)
             password: Пароль (опционально)
             trusted_connection: Использовать Windows аутентификацию (по умолчанию True)
         """
-        self.server = server
-        self.port = port
+        self.server_name = server_name
         self.database = database
         self.username = username
         self.password = password
@@ -56,18 +53,20 @@ class MSSQLDatabase:
         try:
             conn_props = (
                 f"DRIVER={{ODBC Driver 17 for SQL Server}};",
-                f"SERVER={self.server},{self.port};",
+                f"SERVER={self.server_name};",
                 f"DATABASE={self.database};",
                 f"UID={self.username};",
                 f"PWD={self.password};"
+                "ApplicationIntent=ReadOnly;"     
                 "TrustServerCertificate=yes;"
                 "ConnectRetryCount=3;"  # Авто-повтор при обрыве связи (до 3 раз)
                 "ConnectRetryInterval=3;",
             )
+
             conn_str = "".join(conn_props)
             self.connection = pyodbc.connect(conn_str)
             logger.info(
-                f"Successfully connected to DB '{self.database}' on server '{self.server}'"
+                f"Successfully connected to DB '{self.database}' on server '{self.server_name}'"
             )
 
         except pyodbc.Error as e:
@@ -158,8 +157,7 @@ def main():
     # === НАСТРОЙКА ПОДКЛЮЧЕНИЯ ===
     #  SQL Server аутентификация (логин/пароль)
     db = MSSQLDatabase(
-        server="localhost",
-        port=1435,
+        server_name=os.getenv("SERVER_NAME"),
         database=os.getenv("DB_NAME"),
         username=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),

@@ -25,6 +25,15 @@
 
    1. Нажмите кнопку OK внизу окна. Новый пользователь создан.
 
+Если сервер настроен в режиме «Только Windows», войти под локальным SQL-пользователем (таким как ReadOnlyUser) не удастся.Подключитесь к SQL Server под своей учетной записью администратора (через Проверку подлинности Windows / Windows Authentication).  
+В обозревателе объектов (Object Explorer) нажмите правой кнопкой мыши на имя самого сервера (корневой элемент дерева) и выберите Свойства (Properties).  
+Перейдите в раздел Безопасность (Security).В блоке «Проверка подлинности сервера» выберите пункт Проверка подлинности SQL Server и Windows (Смешанный режим / Mixed Mode).  
+
+Строка для подключения
+```
+Server=localhost\SQLEXPRESS;Database=master;Trusted_Connection=True;
+```
+
 ------------------------------
 ## Как проверить подключение?
 
@@ -33,8 +42,36 @@
    3. Введите созданный логин и пароль.
    4. Нажмите Options >> (Параметры), перейдите на вкладку Connection Properties (Свойства подключения) и в поле Connect to database выберите вашу БД. Это гарантирует, что TCP-запрос пойдет сразу в нужную базу, так как к системным базам у этого пользователя доступа не будет.
 
+# Установка приложения
 
-# Установка сервиса
+## Step 1
+В системе должны быть установлены Python и git. 
+Клонировать приложение из gihub и установить зависимости:
+```
+git clone https://github.com/labintsev/atm-python-vis.git
+cd atm-python-vis
+pip install -r requeirements.txt
+```
+
+## Step 2
+Создать .env файл
+
+```sh
+DB_USER=ReadOnlyUser
+DB_PASSWORD=Yourpass234!
+DB_NAME=ATM_267
+SERVER_NAME = 'localhost\SQLEXPRESS'   
+
+# Authentication Credentials
+AUTH_USERNAME=user
+AUTH_PASSWORD=SomePass
+
+# Flask Configuration
+SECRET_KEY=your-secret-key-change-this-in-production
+```
+
+
+# Установка веб сервиса
 
 Нам нужен автоматический HTTPS от Let's Encrypt, используем Traefik 
 Сервер должен иметь открытые 80 и 443 порты через статический адрес.
@@ -112,13 +149,6 @@ http:
 ```
 
 ## Шаг 4: Запуск Flask (Waitress)
-В системе должны быть установлены Python и git. 
-Клонировать приложение из gihub и установить зависимости:
-```
-git clone https://github.com/labintsev/atm-python-vis.git
-cd atm-python-vis
-pip install -r requeirements.txt
-```
 
 Flask-приложение запускается точно так же, как в классическом варианте (через waitress на порту 8000 локально).
 
