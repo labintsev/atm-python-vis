@@ -27,10 +27,11 @@ class MSSQLDatabase:
 
     def __init__(
         self,
-        server_name: str = "localhost",
-        database: str = "master",
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        driver: str,
+        server_name: str,
+        database: str,
+        username: Optional[str],
+        password: Optional[str],
     ):
         """
         Инициализация подключения к БД
@@ -42,6 +43,7 @@ class MSSQLDatabase:
             password: Пароль (опционально)
             trusted_connection: Использовать Windows аутентификацию (по умолчанию True)
         """
+        self.driver = driver
         self.server_name = server_name
         self.database = database
         self.username = username
@@ -52,19 +54,19 @@ class MSSQLDatabase:
         """Установка соединения с БД"""
         try:
             conn_props = (
-                f"DRIVER={{ODBC Driver 17 for SQL Server}};",
-                f"SERVER={self.server_name};",
-                f"DATABASE={self.database};",
-                f"UID={self.username};",
+                f"DRIVER={self.driver};"
+                f"SERVER={self.server_name};"
+                f"DATABASE={self.database};"
+                f"UID={self.username};"
                 f"PWD={self.password};"
                 "ApplicationIntent=ReadOnly;"     
                 "TrustServerCertificate=yes;"
-                "ConnectRetryCount=3;"  # Авто-повтор при обрыве связи (до 3 раз)
-                "ConnectRetryInterval=3;",
+                "ConnectRetryCount=3;"
+                "ConnectRetryInterval=3;"
             )
 
             conn_str = "".join(conn_props)
-            self.connection = pyodbc.connect(conn_str)
+            self.connection = pyodbc.connect(conn_props)
             logger.info(
                 f"Successfully connected to DB '{self.database}' on server '{self.server_name}'"
             )
@@ -157,6 +159,7 @@ def main():
     # === НАСТРОЙКА ПОДКЛЮЧЕНИЯ ===
     #  SQL Server аутентификация (логин/пароль)
     db = MSSQLDatabase(
+        driver=os.getenv("DRIVER_NAME"),
         server_name=os.getenv("SERVER_NAME"),
         database=os.getenv("DB_NAME"),
         username=os.getenv("DB_USER"),

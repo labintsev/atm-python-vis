@@ -63,6 +63,7 @@ def init_db():
 
     try:
         db = MSSQLDatabase(
+            driver=os.getenv("DRIVER_NAME"),
             server_name=os.getenv("SERVER_NAME"),
             database=os.getenv("DB_NAME"),
             username=os.getenv("DB_USER"),
