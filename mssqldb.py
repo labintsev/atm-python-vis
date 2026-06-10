@@ -94,12 +94,10 @@ class MSSQLDatabase:
             pandas DataFrame с результатами запроса
         """
         query = """
-        SELECT        
-            S.SchID, 
+        SELECT DISTINCT        
             S.SchDate, 
             S.Start, 
             S.Stop, 
-            S.PlanID, 
             S.OrderID, 
             S.Clip, 
             S.RealDur, 
@@ -209,7 +207,7 @@ def main():
         else f"PointID {radio_point_id}"
     )
     visualizer = RadioScheduleVisualizer(df, radio_point_id, radio_name=radio_name)
-    visualizer.create_schedule_fig(detailed=False).show()
+    visualizer.create_schedule_fig(detailed=True).show()
 
 
 if __name__ == "__main__":
