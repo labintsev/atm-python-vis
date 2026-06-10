@@ -166,8 +166,8 @@ def main():
         password=os.getenv("DB_PASSWORD"),
     )
     df = None
-    date_start = "2025-04-16"
-    date_end = "2025-05-16"
+    date_start = "2026-06-10"
+    date_end = "2026-06-10"
     try:
         # Подключение к БД
         db.connect()
@@ -209,7 +209,7 @@ def main():
         else f"PointID {radio_point_id}"
     )
     visualizer = RadioScheduleVisualizer(df, radio_point_id, radio_name=radio_name)
-    visualizer.get_figure().show()
+    visualizer.create_schedule_fig(detailed=False).show()
 
 
 if __name__ == "__main__":

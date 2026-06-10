@@ -53,9 +53,7 @@ class RadioScheduleVisualizer:
         Group by SchDate, Start, new colunm Weight - sum of rows in group
         """
         self.df["BlockLen"] = self.df["Stop"] - self.df["Start"]
-
-        # 2. Группировка по дате и Start, суммируем RealDur
-        self.df = (
+        self.blocks_df = (
             self.df.groupby(["SchDate", "Start"])
             .agg(
                 BlockLen=(
@@ -66,20 +64,57 @@ class RadioScheduleVisualizer:
             )
             .reset_index()
         )
-        self.df["BlockLoad"] = self.df["TotalRealDur"] / self.df["BlockLen"]
+
+        self.blocks_df["BlockLoad"] = self.blocks_df["TotalRealDur"] / self.blocks_df["BlockLen"]
 
     def _format_dateetimes(self):
         # Преобразование Start в часы и минуты
-        self.df["Start_Hour"] = self.df["Start"] // 3600
-        self.df["Start_Minute"] = (self.df["Start"] % 3600) // 60
+        self.blocks_df["Start_Hour"] = self.blocks_df["Start"] // 3600
+        self.blocks_df["Start_Minute"] = (self.blocks_df["Start"] % 3600) // 60
         # Преобразование времени в часы с десятичной дробью для оси Y
-        self.df["Start_Hours_Decimal"] = (
-            self.df["Start_Hour"] + self.df["Start_Minute"] / 60
+        self.blocks_df["Start_Hours_Decimal"] = (
+            self.blocks_df["Start_Hour"] + self.blocks_df["Start_Minute"] / 60
         )
         # Преобразование в datetime
-        self.df["Date"] = pd.to_datetime(self.df["SchDate"])
+        self.blocks_df["SchDate"] = pd.to_datetime(self.blocks_df["SchDate"])
 
-    def create_detailed_schedule(self):
+    def _get_detailed_texts(self, date):
+        day_df = self.blocks_df[self.blocks_df["SchDate"] == date]
+        block_starts = day_df["Start"].tolist()
+        hover_texts = []
+        day_data = self.df[self.df["SchDate"] == date]
+        for st in block_starts:
+            start_time_str = f"{st//3600:02d}:{(st%3600)//60:02d}"
+            response_names_in_block = day_data[day_data["Start"] == st]["Responsible"].tolist()
+            tracks_in_block = day_data[day_data["Start"] == st]["Clip"].tolist()
+            responses_to_show = ""
+            for t, r in zip(tracks_in_block, response_names_in_block):
+                responses_to_show += f" {r} - {t}<br>"
+            
+            hover_texts.append(start_time_str + "<br>" + responses_to_show)
+        return hover_texts
+
+    def _get_block_load_texts(self, date):
+        day_df = self.blocks_df[self.blocks_df["SchDate"] == date]
+        block_loads = day_df["BlockLoad"].tolist()
+        block_starts = day_df["Start"].tolist()
+        block_lengths = day_df["BlockLen"].tolist()
+        total_real_durations = day_df["TotalRealDur"].tolist()
+        hover_texts = [
+                f"""
+Дата: <b>{date.strftime('%d-%m-%Y')}</b><br>
+Начало: {datetime.timedelta(seconds=bs)}<br>
+Длина блока: {datetime.timedelta(seconds=bl)}<br>
+Занято: {datetime.timedelta(seconds=trd)}<br>
+Свободно: {datetime.timedelta(seconds=max(0, bl - trd))}<br>
+Загрузка: {load:.0%}"""
+                for bs, bl, trd, load in zip(
+                    block_starts, block_lengths, total_real_durations, block_loads
+                )
+            ]
+        return hover_texts
+
+    def create_schedule_fig(self, detailed=True):
         """
         Визуализация расписания роликов для 30 дней
         """
@@ -90,25 +125,15 @@ class RadioScheduleVisualizer:
 
         # Для каждого дня создаем scatter plot с точками
         for idx, date in enumerate(self.dates):
-            day_df = self.df[self.df["Date"] == date]
+            day_df = self.blocks_df[self.blocks_df["SchDate"] == date]
             block_loads = day_df["BlockLoad"].tolist()
             y_values = day_df["Start_Hours_Decimal"].tolist()
-            # Время блока, длительность блока, суммарная длительность роликов в блоке
-            block_times = day_df["Start"].tolist()
-            block_lengths = day_df["BlockLen"].tolist()
-            total_real_durations = day_df["TotalRealDur"].tolist()
-            hover_texts = [
-                f"""
-Дата: <b>{date.strftime('%d-%m-%Y')}</b><br>
-Начало: {datetime.timedelta(seconds=bt)}<br>
-Блок: {datetime.timedelta(seconds=bl)}<br>
-Занято: {datetime.timedelta(seconds=trd)}<br>
-Свободно: {datetime.timedelta(seconds=max(0, bl - trd))}<br>
-Загрузка: {load:.0%}"""
-                for bt, bl, trd, load in zip(
-                    block_times, block_lengths, total_real_durations, block_loads
-                )
-            ]
+
+            if detailed:
+                hover_texts = self._get_detailed_texts(date)
+            else:
+                hover_texts = self._get_block_load_texts(date)
+
             block_colors = [
                 "green" if load < 0.3 else "orange" if load < 0.6 else "red"
                 for load in block_loads
@@ -162,14 +187,7 @@ class RadioScheduleVisualizer:
 
         return fig
 
-    def get_figure(self):
-        """
-        Получить Plotly Figure для интерактивной визуализации
 
-        Returns:
-            plotly.graph_objects.Figure объект
-        """
-        return self.create_detailed_schedule()
 
 
 # Пример использования
@@ -188,4 +206,4 @@ if __name__ == "__main__":
     print(visualizer.df.head(10).to_string())
     visualizer.df.to_csv("data/scheds_orders_prepared.csv", index=False)
     # Запуск визуализации
-    visualizer.get_figure().show()
+    visualizer.create_schedule_fig().show()
