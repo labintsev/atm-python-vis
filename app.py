@@ -199,7 +199,7 @@ def schedule():
         # Create visualizer and get figure
         try:
             visualizer = RadioScheduleVisualizer(df, radio_id, radio_name)
-            fig = visualizer.get_figure()
+            fig = visualizer.create_schedule_fig(detailed=False)
 
             # Convert figure to HTML
             graph_html = fig.to_html(
