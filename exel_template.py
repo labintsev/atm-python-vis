@@ -25,8 +25,8 @@ class ExcelTemplateGenerator:
             raise ValueError("DataFrame не может быть пустым")
 
         self.df = df.copy()
-        self.template_path = template_path or "excel/template.xlsx"
-        self.output_path = output_path or "excel/schedule_export.xlsx"
+        self.template_path = template_path 
+        self.output_path = output_path 
         self.wb = None
         self.ws = None
         self.date_to_col = {}

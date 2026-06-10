@@ -229,7 +229,7 @@ def schedule():
 @login_required
 def export_schedule():
     """Export the selected schedule to an Excel file."""
-    try:        
+    try:
         if not db_initialized:
             init_db()
 
@@ -267,8 +267,12 @@ def export_schedule():
         if df.empty:
             return "Нет данных для выбранной радиостанции и периода", 404
 
-        output_file = f"data/МП_{radio_name}_{date_str}.xlsx"
-        generator = ExcelTemplateGenerator(df, output_path=output_file)
+        output_file = os.path.join(
+            os.getenv("MEDIA_FOLDER"), f"МП_{radio_name}_{date_str}.xlsx"
+        )
+        generator = ExcelTemplateGenerator(
+            df, template_path=os.getenv("EXCEL_TEMPLATE"), output_path=output_file
+        )
         generator.generate()
 
         return send_file(output_file, as_attachment=True)

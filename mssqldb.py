@@ -6,13 +6,16 @@ import os
 import logging
 
 from sched_vizual import RadioScheduleVisualizer
+dotenv.load_dotenv()
+
+log_file = os.getenv("LOG_FILE")
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.FileHandler("logs/service.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -59,7 +62,7 @@ class MSSQLDatabase:
                 f"DATABASE={self.database};"
                 f"UID={self.username};"
                 f"PWD={self.password};"
-                "ApplicationIntent=ReadOnly;"     
+                "ApplicationIntent=ReadOnly;"
                 "TrustServerCertificate=yes;"
                 "ConnectRetryCount=3;"
                 "ConnectRetryInterval=3;"
